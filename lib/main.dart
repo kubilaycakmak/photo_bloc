@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
         ),
         extendBody: true,
         bottomNavigationBar: FloatingNavbar(
-          backgroundColor: Color(0x8C999999),
+          backgroundColor: Color(0xB6777777),
           selectedItemColor: Colors.white,
           selectedBackgroundColor: Colors.white10,
           unselectedItemColor: Colors.white70,
