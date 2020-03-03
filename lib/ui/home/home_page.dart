@@ -5,53 +5,135 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_bloc/data/model/hits.dart';
 import 'package:photo_bloc/ui/global/photo/bloc/photo_bloc.dart';
+import 'package:photo_bloc/ui/pages/category_page.dart';
+import 'package:photo_bloc/ui/pages/fav_page.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:slide_popup_dialog/slide_popup_dialog.dart' as slideDialog;
+import '../../main.dart';
 import '../global/photo/bloc/photo_bloc.dart';
 
+final Shader linearGradient = LinearGradient(
+      colors: <Color>[Colors.teal[900], Colors.teal[200]],
+    ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 700.0));
+String typeOfPhoto = 'latest';
+double dotIndex = 0.0;
+bool pageDynamic = true;
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
-
 class _HomePageState extends State<HomePage> {
-  String typeOfPhoto = 'latest';
-  double dotIndex = 0.0;
-
+  
+  List<Hits> latest;
+  List<Hits> popular;
+  List<Hits> upcoming;
   @override
   Widget build(BuildContext context) {
     print(typeOfPhoto);
-    return PageView(
-      scrollDirection: Axis.horizontal,
-      onPageChanged: (value) {
-        setState(() {
-          if (value == 0) {
-            typeOfPhoto = 'latest';
-            dotIndex = 0.0;
-          } else if (value == 1) {
-            typeOfPhoto = 'popular';
-            dotIndex = 1.0;
-          } else {
-            typeOfPhoto = 'upcoming';
-            dotIndex = 2.0;
-          }
-          print('$typeOfPhoto == $value');
-        });
-      },
+    return Stack(
       children: <Widget>[
-        buildBlocBuilder('Latest'),
-        buildBlocBuilder('Popular'),
-        buildBlocBuilder('Upcoming')
+          Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            pageDynamic == true ? Padding(
+              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              child: Text(
+                typeOfPhoto,
+                style: GoogleFonts.kaushanScript(
+                    fontSize: 50,
+                    foreground: Paint()..shader = linearGradient),
+              ),
+            ) : Container(),
+            pageDynamic == true ? Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: DotsIndicator(
+                dotsCount: 4,
+                position: dotIndex,
+                decorator: DotsDecorator(
+                  activeColor: Colors.tealAccent,
+                  color: Colors.teal,
+                  size: const Size.square(5.0),
+                  activeSize: const Size(18.0, 9.0),
+                  activeShape: RoundedRectangleBorder(
+                      side: BorderSide(
+                          style: BorderStyle.solid, color: Colors.black),
+                      borderRadius: BorderRadius.circular(5.0)),
+                ),
+              ),
+            ) : Align(
+              alignment: Alignment.topCenter,
+              child: DotsIndicator(
+                dotsCount: 4,
+                position: dotIndex,
+                decorator: DotsDecorator(
+                  activeColor: Colors.tealAccent,
+                  color: Colors.teal,
+                  size: const Size.square(5.0),
+                  activeSize: const Size(18.0, 9.0),
+                  activeShape: RoundedRectangleBorder(
+                      side: BorderSide(
+                          style: BorderStyle.solid, color: Colors.black),
+                      borderRadius: BorderRadius.circular(5.0)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: pageDynamic == true ? const EdgeInsets.only(top: 80) : const EdgeInsets.only(top: 20),
+          child: buildPageView(),
+        )
       ],
     );
   }
+  @override
+  void initState() { 
+    super.initState();
+  }
+  PageView buildPageView() {
+    return PageView(
+    scrollDirection: Axis.horizontal,
+    onPageChanged: (value) {
+      setState(() {
+        if (value == 0) {
+          selectedIndex = 0;
+          typeOfPhoto = 'latest';
+          dotIndex = 0.0;
+          pageDynamic = true;
+        } else if (value == 1) {
+          selectedIndex = 0;
+          typeOfPhoto = 'popular';
+          dotIndex = 1.0;
+          pageDynamic = true;
+        }
+        else if (value == 2) {
+          selectedIndex = 1;
+          typeOfPhoto = '';
+          dotIndex = 2.0;
+          pageDynamic = false;
+        }
+        else if (value == 3) {
+          selectedIndex = 2;
+          typeOfPhoto = '';
+          dotIndex = 3.0;
+          pageDynamic = false;
+        }
+        print('$typeOfPhoto == $value');
+      });
+    },
+    children: <Widget>[
+      buildBlocBuilder(),
+      buildBlocBuilder(),
+      CategoryPage(),
+      FavoritePage()
+    ],
+  );
+  }
 
-  BlocBuilder<PhotoBloc, PhotoState> buildBlocBuilder(String title) {
+  BlocBuilder<PhotoBloc, PhotoState> buildBlocBuilder() {
     BlocProvider.of<PhotoBloc>(context).add(FetchHits(typeOfPhoto));
-    final Shader linearGradient = LinearGradient(
-      colors: <Color>[Colors.teal[900], Colors.teal[200]],
-    ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 700.0));
     return BlocBuilder<PhotoBloc, PhotoState>(
       builder: (context, state) {
         if (state is HitsEmpty) {
@@ -63,44 +145,10 @@ class _HomePageState extends State<HomePage> {
           );
         }
         if (state is HitsLoaded) {
-          return ListView(
-            shrinkWrap: false,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                    child: Text(
-                      title,
-                      style: GoogleFonts.kaushanScript(
-                          fontSize: 50,
-                          foreground: Paint()..shader = linearGradient),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: DotsIndicator(
-                      dotsCount: 3,
-                      position: dotIndex,
-                      decorator: DotsDecorator(
-                        activeColor: Colors.tealAccent,
-                        color: Colors.teal,
-                        size: const Size.square(5.0),
-                        activeSize: const Size(18.0, 9.0),
-                        activeShape: RoundedRectangleBorder(
-                            side: BorderSide(
-                                style: BorderStyle.solid, color: Colors.black),
-                            borderRadius: BorderRadius.circular(5.0)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              StaggeredGridView.countBuilder(
+          return StaggeredGridView.countBuilder(
                 scrollDirection: Axis.vertical,
-                physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
+                physics: AlwaysScrollableScrollPhysics(),
+                shrinkWrap: false,
                 staggeredTileBuilder: (index) =>
                     StaggeredTile.count(2, index.isEven ? 2 : 3),
                 crossAxisCount: 4,
@@ -109,12 +157,12 @@ class _HomePageState extends State<HomePage> {
                 itemCount: state.hits.length,
                 itemBuilder: (context, index) {
                   return AnimationConfiguration.staggeredGrid(
-                      duration: const Duration(milliseconds: 375),
+                      duration: const Duration(milliseconds: 175),
                       position: index,
                       columnCount: 3,
                       child: SlideAnimation(
-                          verticalOffset: 500.0,
-                          duration: Duration(milliseconds: 1000),
+                          verticalOffset: 100.0,
+                          duration: Duration(milliseconds: 200),
                           child: Container(
                             child: InkWell(
                               onTap: () {
@@ -146,14 +194,12 @@ class _HomePageState extends State<HomePage> {
                             ),
                           )));
                 },
-              ),
-            ],
           );
         }
-
         return Center(
-            child: SpinKitSquareCircle(
-          color: Colors.black,
+            child: SpinKitWave(
+          color: Colors.teal,
+          type: SpinKitWaveType.center,
           size: 50.0,
         ));
       },

@@ -27,12 +27,14 @@ class HitsTypeChanging extends PhotoState {
 }
 
 class HitsTypeChanged extends PhotoState {
-  final List<Hits> hits;
+  final List<Hits> latest;
+  final List<Hits> popular;
+  final List<Hits> upcoming;
   final String typeOfPhoto;
 
-  HitsTypeChanged({@required this.hits, @required this.typeOfPhoto});
+  HitsTypeChanged({@required this.latest, this.popular, this.upcoming, @required this.typeOfPhoto});
   @override
-  List<Object> get props => [hits, typeOfPhoto];
+  List<Object> get props => [latest, popular, upcoming, typeOfPhoto];
 }
 
 class HitsError extends PhotoState {

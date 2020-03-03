@@ -15,7 +15,7 @@ class HitsApiClient {
 
   Future<List<Hits>> fetchHits(String type) async {
     //int perPage, int pageNumer, _, String type
-    final url = '$_baseUrl&order=$type&editors_choice=true';
+    final url = '$_baseUrl&order=$type&editors_choice=true&orientation=horizontal';
     print(url);
     // '&pageNumber=$pageNumber'+
     // '&per_page=$perPage&editors_choice=true&category=$_' +
